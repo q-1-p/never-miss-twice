@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/habit_provider.dart';
+import 'habit_notifier.dart';
 
 class AddHabitDialog extends StatefulWidget {
   const AddHabitDialog({super.key});
@@ -22,7 +22,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
   void _submit() {
     final name = _controller.text.trim();
     if (name.isEmpty) return;
-    context.read<HabitProvider>().addHabit(name);
+    context.read<HabitNotifier>().addHabit(name);
     Navigator.of(context).pop();
   }
 

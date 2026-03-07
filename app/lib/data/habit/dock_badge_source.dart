@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-class DockBadgeService {
+class DockBadgeSource {
   static const _channel = MethodChannel('com.nevermisstwice/dock_badge');
 
   Future<void> setBadge(String? label) async {

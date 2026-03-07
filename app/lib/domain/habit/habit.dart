@@ -1,3 +1,6 @@
+import 'habit_date.dart';
+import 'streak_status.dart';
+
 class Habit {
   final String id;
   final String name;
@@ -11,19 +14,20 @@ class Habit {
     this.completedDates = const {},
   });
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'createdAt': createdAt.toIso8601String(),
-        'completedDates': completedDates.toList(),
-      };
+  int currentStreak(StreakStatus status) {
+    if (status == StreakStatus.broken) return 0;
 
-  factory Habit.fromJson(Map<String, dynamic> json) => Habit(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        createdAt: DateTime.parse(json['createdAt'] as String),
-        completedDates: Set<String>.from(json['completedDates'] as List),
-      );
+    var cursor = completedDates.contains(HabitDate.today())
+        ? DateTime.now()
+        : DateTime.now().subtract(const Duration(days: 1));
+
+    var streak = 0;
+    while (completedDates.contains(HabitDate.fromDateTime(cursor))) {
+      streak++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+    return streak;
+  }
 
   Habit copyWith({
     String? id,

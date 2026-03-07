@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/habit_provider.dart';
-import '../widgets/add_habit_dialog.dart';
-import '../widgets/habit_list_item.dart';
+import 'add_habit_dialog.dart';
+import 'habit_list_item.dart';
+import 'habit_notifier.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<HabitProvider>();
-    final habits = provider.habits;
+    final notifier = context.watch<HabitNotifier>();
+    final habits = notifier.habits;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F7),

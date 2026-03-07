@@ -1,17 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'providers/habit_provider.dart';
-import 'services/dock_badge_service.dart';
-import 'services/storage_service.dart';
-import 'ui/screens/home_screen.dart';
+import 'data/habit/dock_badge_source.dart';
+import 'data/habit/habit_local_source.dart';
+import 'data/habit/habit_repository_impl.dart';
+import 'domain/habit/add_habit.dart';
+import 'domain/habit/get_at_risk_count.dart';
+import 'domain/habit/get_habits.dart';
+import 'domain/habit/get_streak_status.dart';
+import 'domain/habit/remove_habit.dart';
+import 'domain/habit/toggle_completion.dart';
+import 'presentation/habit/habit_notifier.dart';
+import 'presentation/habit/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final storage = await StorageService.create();
+
+  final prefs = await SharedPreferences.getInstance();
+  final localSource = HabitLocalSource(prefs);
+  final badgeSource = DockBadgeSource();
+  final getStreakStatus = GetStreakStatus();
+  final habitRepository = HabitRepositoryImpl(
+    localSource: localSource,
+    badgeSource: badgeSource,
+    getStreakStatus: getStreakStatus,
+  );
+
   runApp(
     ChangeNotifierProvider(
-      create: (_) => HabitProvider(storage, DockBadgeService()),
+      create: (_) => HabitNotifier(
+        addHabit: AddHabit(habitRepository),
+        removeHabit: RemoveHabit(habitRepository),
+        toggleCompletion: ToggleCompletion(habitRepository),
+        getHabits: GetHabits(habitRepository),
+        getStreakStatus: getStreakStatus,
+        getAtRiskCount: GetAtRiskCount(getStreakStatus),
+      ),
       child: const NeverMissTwiceApp(),
     ),
   );

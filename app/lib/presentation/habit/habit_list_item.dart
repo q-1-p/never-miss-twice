@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../models/habit.dart';
-import '../../providers/habit_provider.dart';
+import '../../domain/habit/habit.dart';
+import '../../domain/habit/habit_date.dart';
+import '../../domain/habit/streak_status.dart';
+import 'habit_notifier.dart';
 
 class HabitListItem extends StatelessWidget {
   final Habit habit;
@@ -11,12 +13,10 @@ class HabitListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<HabitProvider>();
-    final status = provider.streakStatus(habit);
-    final streak = provider.currentStreak(habit);
-    final completedToday = habit.completedDates.contains(
-      HabitProvider.todayKey,
-    );
+    final notifier = context.watch<HabitNotifier>();
+    final status = notifier.streakStatus(habit);
+    final streak = notifier.currentStreak(habit);
+    final completedToday = habit.completedDates.contains(HabitDate.today());
 
     final bgColor = switch (status) {
       StreakStatus.onTrack => Colors.white,
@@ -42,7 +42,7 @@ class HabitListItem extends StatelessWidget {
       child: ListTile(
         leading: Checkbox(
           value: completedToday,
-          onChanged: (_) => provider.toggleCompletion(habit.id),
+          onChanged: (_) => notifier.toggleCompletion(habit.id),
         ),
         title: Text(
           habit.name,
@@ -57,7 +57,7 @@ class HabitListItem extends StatelessWidget {
         trailing: IconButton(
           icon: const Icon(Icons.delete_outline),
           tooltip: '削除',
-          onPressed: () => _confirmDelete(context, provider),
+          onPressed: () => _confirmDelete(context, notifier),
         ),
       ),
     );
@@ -65,7 +65,7 @@ class HabitListItem extends StatelessWidget {
 
   Future<void> _confirmDelete(
     BuildContext context,
-    HabitProvider provider,
+    HabitNotifier notifier,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -85,7 +85,7 @@ class HabitListItem extends StatelessWidget {
       ),
     );
     if (confirmed == true) {
-      provider.removeHabit(habit.id);
+      await notifier.removeHabit(habit.id);
     }
   }
 }
