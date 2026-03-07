@@ -1,30 +1,65 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:app/main.dart';
+import 'package:app/providers/habit_provider.dart';
+import 'package:app/services/dock_badge_service.dart';
+import 'package:app/services/storage_service.dart';
+import 'package:app/ui/screens/home_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('空の状態でホーム画面が表示される', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = await StorageService.create();
+    final provider = HabitProvider(storage, DockBadgeService());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
+    expect(find.text('Never Miss Twice'), findsOneWidget);
+    expect(find.byIcon(Icons.add), findsOneWidget);
+  });
+
+  testWidgets('習慣を追加できる', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = await StorageService.create();
+    final provider = HabitProvider(storage, DockBadgeService());
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: provider,
+        child: const MaterialApp(home: HomeScreen()),
+      ),
+    );
+
     await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), '毎日運動');
+    await tester.tap(find.text('追加'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('毎日運動'), findsOneWidget);
+  });
+
+  test('ストリーク計算: 今日完了でonTrack', () async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = await StorageService.create();
+    final provider = HabitProvider(storage, DockBadgeService());
+
+    provider.addHabit('テスト習慣');
+    final habit = provider.habits.first;
+    provider.toggleCompletion(habit.id);
+
+    expect(
+      provider.streakStatus(provider.habits.first),
+      StreakStatus.onTrack,
+    );
+    expect(provider.currentStreak(provider.habits.first), 1);
   });
 }

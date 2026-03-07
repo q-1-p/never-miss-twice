@@ -1,0 +1,55 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../providers/habit_provider.dart';
+
+class AddHabitDialog extends StatefulWidget {
+  const AddHabitDialog({super.key});
+
+  @override
+  State<AddHabitDialog> createState() => _AddHabitDialogState();
+}
+
+class _AddHabitDialogState extends State<AddHabitDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final name = _controller.text.trim();
+    if (name.isEmpty) return;
+    context.read<HabitProvider>().addHabit(name);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('習慣を追加'),
+      content: TextField(
+        controller: _controller,
+        decoration: const InputDecoration(
+          hintText: '例: 毎日30分読書',
+          border: OutlineInputBorder(),
+        ),
+        autofocus: true,
+        onSubmitted: (_) => _submit(),
+        textInputAction: TextInputAction.done,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('キャンセル'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('追加'),
+        ),
+      ],
+    );
+  }
+}
