@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../domain/habit/habit.dart';
-import '../../domain/habit/habit_date.dart';
-import '../../domain/habit/streak_status.dart';
+import '../../../../domain/habit/habit.dart';
+import '../../../../domain/habit/habit_date.dart';
+import '../../../../domain/habit/streak_status.dart';
 import 'habit_notifier.dart';
 
 class HabitListItem extends StatelessWidget {

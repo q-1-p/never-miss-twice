@@ -3,14 +3,14 @@ import 'package:provider/provider.dart';
 
 import 'habit_notifier.dart';
 
-class AddHabitDialog extends StatefulWidget {
-  const AddHabitDialog({super.key});
+class HabitAddDialog extends StatefulWidget {
+  const HabitAddDialog({super.key});
 
   @override
-  State<AddHabitDialog> createState() => _AddHabitDialogState();
+  State<HabitAddDialog> createState() => _HabitAddDialogState();
 }
 
-class _AddHabitDialogState extends State<AddHabitDialog> {
+class _HabitAddDialogState extends State<HabitAddDialog> {
   final _controller = TextEditingController();
 
   @override
@@ -45,10 +45,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('キャンセル'),
         ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('追加'),
-        ),
+        FilledButton(onPressed: _submit, child: const Text('追加')),
       ],
     );
   }

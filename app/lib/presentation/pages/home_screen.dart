@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'add_habit_dialog.dart';
-import 'habit_list_item.dart';
-import 'habit_notifier.dart';
+import '../widgets/domain/habit/habit_add_dialog.dart';
+import '../widgets/domain/habit/habit_list_item.dart';
+import '../widgets/domain/habit/habit_notifier.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -25,10 +25,7 @@ class HomeScreen extends StatelessWidget {
               children: [
                 const Text(
                   'Never Miss Twice',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 IconButton(
@@ -36,7 +33,7 @@ class HomeScreen extends StatelessWidget {
                   tooltip: '習慣を追加',
                   onPressed: () => showDialog<void>(
                     context: context,
-                    builder: (_) => const AddHabitDialog(),
+                    builder: (_) => const HabitAddDialog(),
                   ),
                 ),
               ],

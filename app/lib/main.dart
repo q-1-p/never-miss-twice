@@ -11,8 +11,8 @@ import 'domain/habit/get_habits.dart';
 import 'domain/habit/get_streak_status.dart';
 import 'domain/habit/remove_habit.dart';
 import 'domain/habit/toggle_completion.dart';
-import 'presentation/habit/habit_notifier.dart';
-import 'presentation/habit/home_screen.dart';
+import 'presentation/widgets/domain/habit/habit_notifier.dart';
+import 'presentation/pages/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

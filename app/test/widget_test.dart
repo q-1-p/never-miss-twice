@@ -13,8 +13,8 @@ import 'package:app/domain/habit/get_streak_status.dart';
 import 'package:app/domain/habit/remove_habit.dart';
 import 'package:app/domain/habit/streak_status.dart';
 import 'package:app/domain/habit/toggle_completion.dart';
-import 'package:app/presentation/habit/habit_notifier.dart';
-import 'package:app/presentation/habit/home_screen.dart';
+import 'package:app/presentation/widgets/domain/habit/habit_notifier.dart';
+import 'package:app/presentation/pages/home_screen.dart';
 
 HabitNotifier _buildNotifier(SharedPreferences prefs) {
   final localSource = HabitLocalSource(prefs);
@@ -83,10 +83,7 @@ void main() {
     final habit = notifier.habits.first;
     await notifier.toggleCompletion(habit.id);
 
-    expect(
-      notifier.streakStatus(notifier.habits.first),
-      StreakStatus.onTrack,
-    );
+    expect(notifier.streakStatus(notifier.habits.first), StreakStatus.onTrack);
     expect(notifier.currentStreak(notifier.habits.first), 1);
   });
 }
