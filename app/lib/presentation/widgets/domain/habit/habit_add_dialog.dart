@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../domain/habit/habit.dart';
 import 'habit_notifier.dart';
 
 class HabitAddDialog extends StatefulWidget {
-  const HabitAddDialog({super.key});
+  final Habit? habit;
+
+  const HabitAddDialog({super.key, this.habit});
 
   @override
   State<HabitAddDialog> createState() => _HabitAddDialogState();
@@ -13,9 +16,14 @@ class HabitAddDialog extends StatefulWidget {
 class _HabitAddDialogState extends State<HabitAddDialog> {
   final _controller = TextEditingController();
 
+  bool get _isEditing => widget.habit != null;
+
   @override
   void initState() {
     super.initState();
+    if (_isEditing) {
+      _controller.text = widget.habit!.name;
+    }
     _controller.addListener(() => setState(() {}));
   }
 
@@ -28,7 +36,12 @@ class _HabitAddDialogState extends State<HabitAddDialog> {
   void _submit() {
     final name = _controller.text.trim();
     if (name.isEmpty) return;
-    context.read<HabitNotifier>().addHabit(name);
+    final notifier = context.read<HabitNotifier>();
+    if (_isEditing) {
+      notifier.updateHabit(widget.habit!.id, name);
+    } else {
+      notifier.addHabit(name);
+    }
     Navigator.of(context).pop();
   }
 
@@ -39,11 +52,11 @@ class _HabitAddDialogState extends State<HabitAddDialog> {
 
     return AlertDialog(
       icon: Icon(
-        Icons.add_task_rounded,
+        _isEditing ? Icons.edit_rounded : Icons.add_task_rounded,
         color: theme.colorScheme.primary,
         size: 32,
       ),
-      title: const Text('新しい習慣'),
+      title: Text(_isEditing ? '習慣を編集' : '新しい習慣'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -59,7 +72,7 @@ class _HabitAddDialogState extends State<HabitAddDialog> {
           ),
           const SizedBox(height: 8),
           Text(
-            '毎日続けられる小さな習慣から始めましょう',
+            _isEditing ? '習慣の名前を変更できます' : '毎日続けられる小さな習慣から始めましょう',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -76,8 +89,11 @@ class _HabitAddDialogState extends State<HabitAddDialog> {
         const SizedBox(width: 8),
         FilledButton.icon(
           onPressed: isValid ? _submit : null,
-          icon: const Icon(Icons.add_rounded, size: 18),
-          label: const Text('追加する'),
+          icon: Icon(
+            _isEditing ? Icons.check_rounded : Icons.add_rounded,
+            size: 18,
+          ),
+          label: Text(_isEditing ? '更新する' : '追加する'),
         ),
       ],
     );

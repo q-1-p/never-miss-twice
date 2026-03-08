@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../domain/habit/habit.dart';
 import '../../../../domain/habit/habit_date.dart';
 import '../../../../domain/habit/streak_status.dart';
+import 'habit_add_dialog.dart';
 import 'habit_calendar_sheet.dart';
 import 'habit_notifier.dart';
 
@@ -131,7 +132,7 @@ class _HabitListItemState extends State<HabitListItem> {
                 ),
                 const SizedBox(width: 4),
                 // ── アクションボタン ──
-                Column(
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
@@ -145,17 +146,49 @@ class _HabitListItemState extends State<HabitListItem> {
                             theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded,
-                          size: 20),
-                      visualDensity: VisualDensity.compact,
-                      tooltip: '削除',
-                      onPressed: () =>
-                          _confirmDelete(context, notifier),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, size: 20),
+                      iconSize: 20,
+                      tooltip: 'メニュー',
                       style: IconButton.styleFrom(
                         foregroundColor:
-                            theme.colorScheme.error.withValues(alpha: 0.7),
+                            theme.colorScheme.onSurfaceVariant,
+                        visualDensity: VisualDensity.compact,
                       ),
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'edit':
+                            _openEdit(context, notifier);
+                          case 'delete':
+                            _confirmDelete(context, notifier);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit_outlined, size: 20),
+                              SizedBox(width: 8),
+                              Text('編集'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline_rounded,
+                                  size: 20,
+                                  color: theme.colorScheme.error),
+                              const SizedBox(width: 8),
+                              Text('削除',
+                                  style: TextStyle(
+                                      color: theme.colorScheme.error)),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -188,10 +221,13 @@ class _HabitListItemState extends State<HabitListItem> {
     };
   }
 
-  void _openEdit(BuildContext context) {
+  void _openEdit(BuildContext context, HabitNotifier notifier) {
     showDialog<void>(
       context: context,
-      builder: (_) => HabitAddDialog(habit: widget.habit),
+      builder: (_) => ChangeNotifierProvider.value(
+        value: notifier,
+        child: HabitAddDialog(habit: widget.habit),
+      ),
     );
   }
 

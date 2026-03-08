@@ -72,6 +72,15 @@ class HabitRepositoryImpl implements HabitRepository {
     _refreshBadge();
   }
 
+  @override
+  Future<void> updateHabit(String id, String name) async {
+    _cache = _cache.map((h) {
+      if (h.id != id) return h;
+      return h.copyWith(name: name.trim());
+    }).toList();
+    await _persist();
+  }
+
   Future<void> _persist() async {
     await _localSource.saveHabits(_cache.map(HabitModel.fromDomain).toList());
   }
