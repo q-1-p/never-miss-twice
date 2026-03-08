@@ -88,7 +88,7 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
     final streakStatus = notifier.streakStatus(habit);
 
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
