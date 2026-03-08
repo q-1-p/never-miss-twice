@@ -130,15 +130,15 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
             ),
             const SizedBox(height: 4),
             // ── 曜日ヘッダー ──
-            const Row(
+            Row(
               children: [
-                _DayHeader('日', color: Colors.red),
-                _DayHeader('月'),
-                _DayHeader('火'),
-                _DayHeader('水'),
-                _DayHeader('木'),
-                _DayHeader('金'),
-                _DayHeader('土', color: Colors.blue),
+                _DayHeader('日', color: Colors.red[400]),
+                const _DayHeader('月'),
+                const _DayHeader('火'),
+                const _DayHeader('水'),
+                const _DayHeader('木'),
+                const _DayHeader('金'),
+                _DayHeader('土', color: Colors.blue[400]),
               ],
             ),
             const Divider(height: 12, thickness: 0.5),
@@ -339,7 +339,8 @@ class _DayHeader extends StatelessWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: color ?? Colors.grey[600],
+            color: color ??
+                Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ),
@@ -366,6 +367,7 @@ class _DayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     Color? bgColor;
     Color textColor;
     Border? border;
@@ -373,7 +375,7 @@ class _DayCell extends StatelessWidget {
     Gradient? gradient;
 
     if (isDisabled) {
-      textColor = Colors.grey[300]!;
+      textColor = theme.colorScheme.onSurface.withValues(alpha: 0.2);
     } else if (isCompleted) {
       gradient = LinearGradient(
         begin: Alignment.topLeft,
@@ -388,7 +390,7 @@ class _DayCell extends StatelessWidget {
           ),
         ],
       );
-      textColor = Colors.white;
+      textColor = theme.colorScheme.onPrimary;
       shadows = [
         BoxShadow(
           color: primaryColor.withValues(alpha: 0.3),
@@ -397,7 +399,7 @@ class _DayCell extends StatelessWidget {
         ),
       ];
     } else {
-      textColor = Colors.black87;
+      textColor = theme.colorScheme.onSurface;
     }
 
     if (isToday) {

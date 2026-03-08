@@ -12,6 +12,7 @@ import 'domain/habit/get_streak_status.dart';
 import 'domain/habit/remove_habit.dart';
 import 'domain/habit/toggle_completion.dart';
 import 'domain/habit/toggle_completion_for_date.dart';
+import 'domain/habit/update_habit.dart';
 import 'presentation/widgets/domain/habit/habit_notifier.dart';
 import 'presentation/pages/home_screen.dart';
 
@@ -33,6 +34,7 @@ void main() async {
       create: (_) => HabitNotifier(
         addHabit: AddHabit(habitRepository),
         removeHabit: RemoveHabit(habitRepository),
+        updateHabit: UpdateHabit(habitRepository),
         toggleCompletion: ToggleCompletion(habitRepository),
         toggleCompletionForDate: ToggleCompletionForDate(habitRepository),
         getHabits: GetHabits(habitRepository),
@@ -47,51 +49,70 @@ void main() async {
 class NeverMissTwiceApp extends StatelessWidget {
   const NeverMissTwiceApp({super.key});
 
+  static const _seedColor = Color(0xFF3949AB);
+
+  static const _textTheme = TextTheme(
+    headlineMedium: TextStyle(
+      fontSize: 26,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.5,
+      height: 1.2,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      letterSpacing: -0.2,
+    ),
+    bodySmall: TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      letterSpacing: 0.1,
+    ),
+  );
+
   static ThemeData _buildTheme() {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF3949AB),
+      seedColor: _seedColor,
     ).copyWith(
       surface: const Color(0xFFF5F5F7),
       surfaceContainerLowest: const Color(0xFFFFFFFF),
       surfaceContainer: const Color(0xFFEEEEF4),
     );
 
+    return _buildThemeData(colorScheme);
+  }
+
+  static ThemeData _buildDarkTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: _seedColor,
+      brightness: Brightness.dark,
+    );
+
+    return _buildThemeData(colorScheme);
+  }
+
+  static ThemeData _buildThemeData(ColorScheme colorScheme) {
     return ThemeData(
       colorScheme: colorScheme,
       useMaterial3: true,
-      textTheme: const TextTheme(
-        headlineMedium: TextStyle(
-          fontSize: 26,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
-          height: 1.2,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.2,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.1,
-        ),
-      ),
+      textTheme: _textTheme,
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        shape: RoundedRectangleBorder(
+      bottomSheetTheme: BottomSheetThemeData(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         showDragHandle: true,
-        dragHandleColor: Color(0xFFBBBBCC),
-        dragHandleSize: Size(40, 4),
+        dragHandleColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        dragHandleSize: const Size(40, 4),
       ),
       checkboxTheme: CheckboxThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -129,6 +150,7 @@ class NeverMissTwiceApp extends StatelessWidget {
       title: 'Never Miss Twice',
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
+      darkTheme: _buildDarkTheme(),
       home: const HomeScreen(),
     );
   }

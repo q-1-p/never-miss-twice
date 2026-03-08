@@ -37,7 +37,7 @@ class _HabitListItemState extends State<HabitListItem> {
     final theme = Theme.of(context);
 
     final statusColor = _statusColor(status);
-    final surfaceColor = _surfaceColor(status);
+    final surfaceColor = _surfaceColor(status, theme.brightness);
 
     return AnimatedOpacity(
       opacity: _visible ? 1.0 : 0.0,
@@ -78,17 +78,18 @@ class _HabitListItemState extends State<HabitListItem> {
                       border: Border.all(
                         color: completedToday
                             ? statusColor
-                            : Colors.black.withValues(alpha: 0.2),
+                            : theme.colorScheme.onSurface
+                                .withValues(alpha: 0.2),
                         width: 2,
                       ),
                     ),
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 200),
                       child: completedToday
-                          ? const Icon(Icons.check_rounded,
-                              color: Colors.white,
+                          ? Icon(Icons.check_rounded,
+                              color: theme.colorScheme.onPrimary,
                               size: 20,
-                              key: ValueKey('checked'))
+                              key: const ValueKey('checked'))
                           : const SizedBox.shrink(
                               key: ValueKey('unchecked')),
                     ),
@@ -172,11 +173,27 @@ class _HabitListItemState extends State<HabitListItem> {
         StreakStatus.broken => const Color(0xFFE03131),
       };
 
-  static Color _surfaceColor(StreakStatus status) => switch (status) {
-        StreakStatus.onTrack => Colors.white,
-        StreakStatus.warning => const Color(0xFFFFFBF0),
-        StreakStatus.broken => const Color(0xFFFFF5F5),
+  static Color _surfaceColor(StreakStatus status, Brightness brightness) {
+    if (brightness == Brightness.dark) {
+      return switch (status) {
+        StreakStatus.onTrack => const Color(0xFF1A1A2E),
+        StreakStatus.warning => const Color(0xFF2A2415),
+        StreakStatus.broken => const Color(0xFF2A1515),
       };
+    }
+    return switch (status) {
+      StreakStatus.onTrack => Colors.white,
+      StreakStatus.warning => const Color(0xFFFFFBF0),
+      StreakStatus.broken => const Color(0xFFFFF5F5),
+    };
+  }
+
+  void _openEdit(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => HabitAddDialog(habit: widget.habit),
+    );
+  }
 
   void _openCalendar(BuildContext context, HabitNotifier notifier) {
     showModalBottomSheet<void>(
@@ -301,7 +318,9 @@ class _StreakCounter extends StatelessWidget {
             Icon(
               Icons.local_fire_department_rounded,
               size: isMilestone ? 16 : 14,
-              color: isMilestone ? Colors.white : statusColor,
+              color: isMilestone
+                  ? theme.colorScheme.onPrimary
+                  : statusColor,
             ),
           // 数字
           Text(
@@ -309,7 +328,9 @@ class _StreakCounter extends StatelessWidget {
             style: TextStyle(
               fontSize: streak >= 100 ? 18 : 22,
               fontWeight: FontWeight.w800,
-              color: isMilestone ? Colors.white : statusColor,
+              color: isMilestone
+                  ? theme.colorScheme.onPrimary
+                  : statusColor,
               height: 1.1,
             ),
           ),
@@ -320,7 +341,7 @@ class _StreakCounter extends StatelessWidget {
               fontSize: 9,
               fontWeight: FontWeight.w600,
               color: isMilestone
-                  ? Colors.white.withValues(alpha: 0.9)
+                  ? theme.colorScheme.onPrimary.withValues(alpha: 0.9)
                   : statusColor.withValues(alpha: 0.7),
               height: 1.3,
             ),
