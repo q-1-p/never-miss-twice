@@ -9,11 +9,13 @@ import '../../../../domain/habit/habit.dart';
 import '../../../../domain/habit/remove_habit.dart';
 import '../../../../domain/habit/streak_status.dart';
 import '../../../../domain/habit/toggle_completion.dart';
+import '../../../../domain/habit/toggle_completion_for_date.dart';
 
 class HabitNotifier extends ChangeNotifier {
   final AddHabit _addHabit;
   final RemoveHabit _removeHabit;
   final ToggleCompletion _toggleCompletion;
+  final ToggleCompletionForDate _toggleCompletionForDate;
   final GetHabits _getHabits;
   final GetStreakStatus _getStreakStatus;
   final GetAtRiskCount _getAtRiskCount;
@@ -25,12 +27,14 @@ class HabitNotifier extends ChangeNotifier {
     required AddHabit addHabit,
     required RemoveHabit removeHabit,
     required ToggleCompletion toggleCompletion,
+    required ToggleCompletionForDate toggleCompletionForDate,
     required GetHabits getHabits,
     required GetStreakStatus getStreakStatus,
     required GetAtRiskCount getAtRiskCount,
   }) : _addHabit = addHabit,
        _removeHabit = removeHabit,
        _toggleCompletion = toggleCompletion,
+       _toggleCompletionForDate = toggleCompletionForDate,
        _getHabits = getHabits,
        _getStreakStatus = getStreakStatus,
        _getAtRiskCount = getAtRiskCount {
@@ -56,6 +60,13 @@ class HabitNotifier extends ChangeNotifier {
 
   Future<void> toggleCompletion(String id) async {
     await _toggleCompletion(id);
+    _refresh();
+  }
+
+  Future<void> toggleCompletionForDate(String id, String date) async {
+    await _toggleCompletionForDate(
+      ToggleCompletionForDateParams(id: id, date: date),
+    );
     _refresh();
   }
 

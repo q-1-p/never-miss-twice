@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../domain/habit/habit.dart';
 import '../../../../domain/habit/habit_date.dart';
 import '../../../../domain/habit/streak_status.dart';
+import 'habit_calendar_sheet.dart';
 import 'habit_notifier.dart';
 
 class HabitListItem extends StatelessWidget {
@@ -54,11 +55,35 @@ class HabitListItem extends StatelessWidget {
             Expanded(child: Text(subtitleText)),
           ],
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline),
-          tooltip: '削除',
-          onPressed: () => _confirmDelete(context, notifier),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.calendar_month_outlined),
+              tooltip: 'カレンダー',
+              onPressed: () => _openCalendar(context, notifier),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: '削除',
+              onPressed: () => _confirmDelete(context, notifier),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  void _openCalendar(BuildContext context, HabitNotifier notifier) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => ChangeNotifierProvider.value(
+        value: notifier,
+        child: HabitCalendarSheet(habit: habit),
       ),
     );
   }

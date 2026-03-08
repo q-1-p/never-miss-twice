@@ -6,10 +6,9 @@ class DockBadgeSource {
 
   Future<void> setBadge(String? label) async {
     try {
-      await _channel.invokeMethod<void>(
-        'setBadgeLabel',
-        {'label': label ?? ''},
-      );
+      await _channel.invokeMethod<void>('setBadgeLabel', {
+        'label': label ?? '',
+      });
     } on PlatformException catch (e) {
       debugPrint('DockBadge not supported: ${e.message}');
     }

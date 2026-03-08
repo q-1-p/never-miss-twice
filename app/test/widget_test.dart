@@ -13,6 +13,7 @@ import 'package:app/domain/habit/get_streak_status.dart';
 import 'package:app/domain/habit/remove_habit.dart';
 import 'package:app/domain/habit/streak_status.dart';
 import 'package:app/domain/habit/toggle_completion.dart';
+import 'package:app/domain/habit/toggle_completion_for_date.dart';
 import 'package:app/presentation/widgets/domain/habit/habit_notifier.dart';
 import 'package:app/presentation/pages/home_screen.dart';
 
@@ -29,6 +30,7 @@ HabitNotifier _buildNotifier(SharedPreferences prefs) {
     addHabit: AddHabit(repo),
     removeHabit: RemoveHabit(repo),
     toggleCompletion: ToggleCompletion(repo),
+    toggleCompletionForDate: ToggleCompletionForDate(repo),
     getHabits: GetHabits(repo),
     getStreakStatus: getStreakStatus,
     getAtRiskCount: GetAtRiskCount(getStreakStatus),

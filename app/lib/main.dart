@@ -11,6 +11,7 @@ import 'domain/habit/get_habits.dart';
 import 'domain/habit/get_streak_status.dart';
 import 'domain/habit/remove_habit.dart';
 import 'domain/habit/toggle_completion.dart';
+import 'domain/habit/toggle_completion_for_date.dart';
 import 'presentation/widgets/domain/habit/habit_notifier.dart';
 import 'presentation/pages/home_screen.dart';
 
@@ -33,6 +34,7 @@ void main() async {
         addHabit: AddHabit(habitRepository),
         removeHabit: RemoveHabit(habitRepository),
         toggleCompletion: ToggleCompletion(habitRepository),
+        toggleCompletionForDate: ToggleCompletionForDate(habitRepository),
         getHabits: GetHabits(habitRepository),
         getStreakStatus: getStreakStatus,
         getAtRiskCount: GetAtRiskCount(getStreakStatus),

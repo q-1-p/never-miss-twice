@@ -60,6 +60,18 @@ class HabitRepositoryImpl implements HabitRepository {
     _refreshBadge();
   }
 
+  @override
+  Future<void> toggleCompletionForDate(String id, String date) async {
+    _cache = _cache.map((h) {
+      if (h.id != id) return h;
+      final dates = Set<String>.from(h.completedDates);
+      dates.contains(date) ? dates.remove(date) : dates.add(date);
+      return h.copyWith(completedDates: dates);
+    }).toList();
+    await _persist();
+    _refreshBadge();
+  }
+
   Future<void> _persist() async {
     await _localSource.saveHabits(_cache.map(HabitModel.fromDomain).toList());
   }
