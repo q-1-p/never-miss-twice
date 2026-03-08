@@ -51,7 +51,7 @@ void main() {
     );
 
     expect(find.text('Never Miss Twice'), findsOneWidget);
-    expect(find.byIcon(Icons.add), findsOneWidget);
+    expect(find.byType(FilledButton), findsWidgets);
   });
 
   testWidgets('習慣を追加できる', (WidgetTester tester) async {
@@ -66,11 +66,11 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(find.byIcon(Icons.add_rounded).first);
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), '毎日運動');
-    await tester.tap(find.text('追加'));
+    await tester.tap(find.text('追加する'));
     await tester.pumpAndSettle();
 
     expect(find.text('毎日運動'), findsOneWidget);

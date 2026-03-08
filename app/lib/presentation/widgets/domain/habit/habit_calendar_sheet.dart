@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../domain/habit/habit.dart';
 import '../../../../domain/habit/habit_date.dart';
+import '../../../../domain/habit/streak_status.dart';
 import 'habit_notifier.dart';
 
 class HabitCalendarSheet extends StatefulWidget {
@@ -52,10 +55,8 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
     final todayStr = HabitDate.fromDateTime(now);
 
     final currentMonth = DateTime(now.year, now.month);
-
     final canGoNext = _displayedMonth.isBefore(currentMonth);
 
-    // Get up-to-date completedDates from notifier
     final notifier = context.watch<HabitNotifier>();
     final habit = notifier.habits.firstWhere(
       (h) => h.id == widget.habit.id,
@@ -63,46 +64,52 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
     );
     final completedDates = habit.completedDates;
 
-    // Month header label
     final monthLabel =
         '${_displayedMonth.year}年${_displayedMonth.month}月';
 
-    // Build calendar cells
     final firstOfMonth =
         DateTime(_displayedMonth.year, _displayedMonth.month, 1);
-    // Dart weekday: Mon=1..Sun=7. Convert to Sunday-first: Sun=0..Sat=6
     final startOffset = firstOfMonth.weekday % 7;
     final daysInMonth =
         DateTime(_displayedMonth.year, _displayedMonth.month + 1, 0).day;
 
+    // 当月の達成数
+    final completedThisMonth = completedDates.where((d) {
+      final parts = d.split('-');
+      if (parts.length != 3) return false;
+      return int.tryParse(parts[0]) == _displayedMonth.year &&
+          int.tryParse(parts[1]) == _displayedMonth.month;
+    }).length;
+
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
 
+    final streak = notifier.currentStreak(habit);
+    final streakStatus = notifier.streakStatus(habit);
+
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Drag handle
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            // Habit name
+            // ── 習慣名 ──
             Text(
               habit.name,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w700),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 12),
+            // ── ストリークハイライト ──
+            _StreakHighlight(
+              streak: streak,
+              status: streakStatus,
+              primaryColor: primaryColor,
+              completedThisMonth: completedThisMonth,
+            ),
             const SizedBox(height: 16),
-            // Month navigation
+            // ── 月ナビ ──
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -112,8 +119,8 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
                 ),
                 Text(
                   monthLabel,
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 IconButton(
                   icon: const Icon(Icons.chevron_right),
@@ -122,7 +129,7 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
               ],
             ),
             const SizedBox(height: 4),
-            // Day-of-week header (Sunday first)
+            // ── 曜日ヘッダー ──
             const Row(
               children: [
                 _DayHeader('日', color: Colors.red),
@@ -134,16 +141,14 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
                 _DayHeader('土', color: Colors.blue),
               ],
             ),
-            const SizedBox(height: 4),
-            // Calendar grid
+            const Divider(height: 12, thickness: 0.5),
+            // ── カレンダーグリッド ──
             GridView.count(
               crossAxisCount: 7,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                // Leading blank cells
                 for (var i = 0; i < startOffset; i++) const SizedBox.shrink(),
-                // Day cells
                 for (var day = 1; day <= daysInMonth; day++)
                   Builder(builder: (context) {
                     final cellDate = DateTime(
@@ -155,22 +160,166 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
                     final isCompleted = completedDates.contains(dateStr);
                     final isToday = dateStr == todayStr;
                     final isFuture = cellDate.isAfter(today);
-                    final isDisabled = isFuture;
 
                     return _DayCell(
                       day: day,
                       isCompleted: isCompleted,
                       isToday: isToday,
-                      isDisabled: isDisabled,
+                      isDisabled: isFuture,
                       primaryColor: primaryColor,
-                      onTap: isDisabled ? null : () => _onTapDate(dateStr),
+                      onTap: isFuture ? null : () => _onTapDate(dateStr),
                     );
                   }),
               ],
             ),
+            // ── 達成率バー ──
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('達成率',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          )),
+                      Text(
+                        '${daysInMonth > 0 ? (completedThisMonth / daysInMonth * 100).round() : 0}%',
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: primaryColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: daysInMonth > 0
+                          ? completedThisMonth / daysInMonth
+                          : 0,
+                      minHeight: 8,
+                      backgroundColor: theme.colorScheme.surfaceContainer,
+                      valueColor:
+                          AlwaysStoppedAnimation(primaryColor),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StreakHighlight extends StatelessWidget {
+  final int streak;
+  final StreakStatus status;
+  final Color primaryColor;
+  final int completedThisMonth;
+
+  const _StreakHighlight({
+    required this.streak,
+    required this.status,
+    required this.primaryColor,
+    required this.completedThisMonth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          // 現在のストリーク
+          _StreakStat(
+            value: '$streak',
+            label: '日連続',
+            icon: streak > 0
+                ? Icons.local_fire_department_rounded
+                : Icons.remove_rounded,
+            color: status == StreakStatus.broken
+                ? theme.colorScheme.onSurfaceVariant
+                : primaryColor,
+            isActive: streak > 0,
+          ),
+          Container(
+            width: 1,
+            height: 36,
+            color: theme.colorScheme.outlineVariant,
+          ),
+          // 今月の達成日数
+          _StreakStat(
+            value: '$completedThisMonth',
+            label: '日達成',
+            icon: Icons.check_circle_outline_rounded,
+            color: theme.colorScheme.onSurfaceVariant,
+            isActive: completedThisMonth > 0,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StreakStat extends StatelessWidget {
+  final String value;
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool isActive;
+
+  const _StreakStat({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.isActive,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: color,
+                height: 1.1,
+              ),
+            ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: color.withValues(alpha: 0.7),
+                height: 1.3,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -220,22 +369,41 @@ class _DayCell extends StatelessWidget {
     Color? bgColor;
     Color textColor;
     Border? border;
+    List<BoxShadow>? shadows;
+    Gradient? gradient;
 
     if (isDisabled) {
-      bgColor = null;
       textColor = Colors.grey[300]!;
     } else if (isCompleted) {
-      bgColor = primaryColor;
+      gradient = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          primaryColor,
+          Color.fromARGB(
+            (primaryColor.a * 255).round(),
+            (primaryColor.r * 255).round(),
+            (primaryColor.g * 255).round(),
+            min((primaryColor.b * 255).round() + 40, 255),
+          ),
+        ],
+      );
       textColor = Colors.white;
+      shadows = [
+        BoxShadow(
+          color: primaryColor.withValues(alpha: 0.3),
+          blurRadius: 6,
+          offset: const Offset(0, 2),
+        ),
+      ];
     } else {
-      bgColor = null;
       textColor = Colors.black87;
     }
 
     if (isToday) {
       border = Border.all(
-        color: isCompleted ? primaryColor.withAlpha(180) : primaryColor,
-        width: 2,
+        color: isCompleted ? primaryColor.withValues(alpha: 0.5) : primaryColor,
+        width: 2.5,
       );
     }
 
@@ -243,18 +411,20 @@ class _DayCell extends StatelessWidget {
       onTap: onTap,
       child: Center(
         child: Container(
-          width: 32,
-          height: 32,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: bgColor,
+            gradient: gradient,
             border: border,
+            boxShadow: shadows,
           ),
           child: Center(
             child: Text(
               '$day',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 color: textColor,
                 fontWeight: isToday ? FontWeight.w700 : FontWeight.normal,
               ),
