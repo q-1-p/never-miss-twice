@@ -51,13 +51,8 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
     final today = DateTime(now.year, now.month, now.day);
     final todayStr = HabitDate.fromDateTime(now);
 
-    final createdAt = widget.habit.createdAt;
-    final createdDay =
-        DateTime(createdAt.year, createdAt.month, createdAt.day);
-    final createdMonth = DateTime(createdAt.year, createdAt.month);
     final currentMonth = DateTime(now.year, now.month);
 
-    final canGoPrev = _displayedMonth.isAfter(createdMonth);
     final canGoNext = _displayedMonth.isBefore(currentMonth);
 
     // Get up-to-date completedDates from notifier
@@ -113,7 +108,7 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
               children: [
                 IconButton(
                   icon: const Icon(Icons.chevron_left),
-                  onPressed: canGoPrev ? _prevMonth : null,
+                  onPressed: _prevMonth,
                 ),
                 Text(
                   monthLabel,
@@ -160,8 +155,7 @@ class _HabitCalendarSheetState extends State<HabitCalendarSheet> {
                     final isCompleted = completedDates.contains(dateStr);
                     final isToday = dateStr == todayStr;
                     final isFuture = cellDate.isAfter(today);
-                    final isBeforeCreation = cellDate.isBefore(createdDay);
-                    final isDisabled = isFuture || isBeforeCreation;
+                    final isDisabled = isFuture;
 
                     return _DayCell(
                       day: day,
