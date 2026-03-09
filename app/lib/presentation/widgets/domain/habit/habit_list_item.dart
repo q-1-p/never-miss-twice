@@ -326,6 +326,14 @@ class _StreakCounter extends StatelessWidget {
     // ストリーク数表示（メイン）
     final isLong = streak >= 7;
     final isMilestone = streak >= 30;
+    final isDark = theme.brightness == Brightness.dark;
+
+    // ダークモードではテキストを明るくしてコントラストを確保
+    final counterTextColor = isMilestone
+        ? theme.colorScheme.onPrimary
+        : isDark
+            ? Color.lerp(statusColor, Colors.white, 0.5)!
+            : statusColor;
 
     return Container(
       width: 56,
@@ -344,7 +352,7 @@ class _StreakCounter extends StatelessWidget {
             : null,
         color: isMilestone
             ? null
-            : statusColor.withValues(alpha: isLong ? 0.12 : 0.08),
+            : statusColor.withValues(alpha: isDark ? (isLong ? 0.25 : 0.2) : (isLong ? 0.12 : 0.08)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -354,9 +362,7 @@ class _StreakCounter extends StatelessWidget {
             Icon(
               Icons.local_fire_department_rounded,
               size: isMilestone ? 16 : 14,
-              color: isMilestone
-                  ? theme.colorScheme.onPrimary
-                  : statusColor,
+              color: counterTextColor,
             ),
           // 数字
           Text(
@@ -364,9 +370,7 @@ class _StreakCounter extends StatelessWidget {
             style: TextStyle(
               fontSize: streak >= 100 ? 18 : 22,
               fontWeight: FontWeight.w800,
-              color: isMilestone
-                  ? theme.colorScheme.onPrimary
-                  : statusColor,
+              color: counterTextColor,
               height: 1.1,
             ),
           ),
@@ -376,9 +380,7 @@ class _StreakCounter extends StatelessWidget {
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w600,
-              color: isMilestone
-                  ? theme.colorScheme.onPrimary.withValues(alpha: 0.9)
-                  : statusColor.withValues(alpha: 0.7),
+              color: counterTextColor.withValues(alpha: isMilestone ? 0.9 : 0.8),
               height: 1.3,
             ),
           ),

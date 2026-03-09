@@ -21,9 +21,22 @@ class Habit {
         ? DateTime.now()
         : DateTime.now().subtract(const Duration(days: 1));
 
+    // 昨日も未完了なら一昨日から開始（brokenでないので一昨日は完了しているはず）
+    if (!completedDates.contains(HabitDate.fromDateTime(cursor))) {
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+
     var streak = 0;
-    while (completedDates.contains(HabitDate.fromDateTime(cursor))) {
-      streak++;
+    var consecutiveMisses = 0;
+
+    while (true) {
+      if (completedDates.contains(HabitDate.fromDateTime(cursor))) {
+        streak++;
+        consecutiveMisses = 0;
+      } else {
+        consecutiveMisses++;
+        if (consecutiveMisses >= 2) break;
+      }
       cursor = cursor.subtract(const Duration(days: 1));
     }
     return streak;

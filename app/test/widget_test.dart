@@ -10,6 +10,8 @@ import 'package:app/domain/habit/add_habit.dart';
 import 'package:app/domain/habit/get_at_risk_count.dart';
 import 'package:app/domain/habit/get_habits.dart';
 import 'package:app/domain/habit/get_streak_status.dart';
+import 'package:app/domain/habit/habit.dart';
+import 'package:app/domain/habit/habit_date.dart';
 import 'package:app/domain/habit/remove_habit.dart';
 import 'package:app/domain/habit/streak_status.dart';
 import 'package:app/domain/habit/toggle_completion.dart';
@@ -89,5 +91,84 @@ void main() {
 
     expect(notifier.streakStatus(notifier.habits.first), StreakStatus.onTrack);
     expect(notifier.currentStreak(notifier.habits.first), 1);
+  });
+
+  group('Never Miss Twice ルール', () {
+    final getStreakStatus = GetStreakStatus();
+
+    String daysAgo(int n) => HabitDate.fromDateTime(
+        DateTime.now().subtract(Duration(days: n)));
+
+    Habit makeHabit(Set<String> dates, {int createdDaysAgo = 10}) => Habit(
+          id: 'test',
+          name: 'test',
+          createdAt: DateTime.now().subtract(Duration(days: createdDaysAgo)),
+          completedDates: dates,
+        );
+
+    test('今日完了 → onTrack', () {
+      final habit = makeHabit({daysAgo(0)});
+      expect(getStreakStatus(habit), StreakStatus.onTrack);
+    });
+
+    test('昨日完了・今日未完了 → onTrack（1日ミスなだけで安全）', () {
+      final habit = makeHabit({daysAgo(1)});
+      expect(getStreakStatus(habit), StreakStatus.onTrack);
+    });
+
+    test('一昨日完了・昨日今日未完了 → warning（1日ミスのみ）', () {
+      final habit = makeHabit({daysAgo(2)});
+      expect(getStreakStatus(habit), StreakStatus.warning);
+    });
+
+    test('3日前完了・一昨日昨日未完了 → broken（2日連続ミス）', () {
+      final habit = makeHabit({daysAgo(3)});
+      expect(getStreakStatus(habit), StreakStatus.broken);
+    });
+
+    test('1日空きでストリーク継続: 今日・一昨日完了', () {
+      final habit = makeHabit({daysAgo(0), daysAgo(2)});
+      final status = getStreakStatus(habit);
+      expect(status, StreakStatus.onTrack);
+      expect(habit.currentStreak(status), 2);
+    });
+
+    test('1日空きでストリーク継続: 今日・一昨日・4日前完了', () {
+      final habit = makeHabit({daysAgo(0), daysAgo(2), daysAgo(4)});
+      final status = getStreakStatus(habit);
+      expect(status, StreakStatus.onTrack);
+      expect(habit.currentStreak(status), 3);
+    });
+
+    test('連続完了日もカウント: 今日・昨日・一昨日完了', () {
+      final habit = makeHabit({daysAgo(0), daysAgo(1), daysAgo(2)});
+      final status = getStreakStatus(habit);
+      expect(status, StreakStatus.onTrack);
+      expect(habit.currentStreak(status), 3);
+    });
+
+    test('2日連続ミスでストリーク途切れ: 今日完了・3日前完了（昨日一昨日ミス）', () {
+      final habit = makeHabit({daysAgo(0), daysAgo(3)});
+      final status = getStreakStatus(habit);
+      expect(status, StreakStatus.onTrack);
+      expect(habit.currentStreak(status), 1);
+    });
+
+    test('broken時はストリーク0', () {
+      final habit = makeHabit({daysAgo(5)});
+      final status = getStreakStatus(habit);
+      expect(status, StreakStatus.broken);
+      expect(habit.currentStreak(status), 0);
+    });
+
+    test('作成日が今日 → onTrack', () {
+      final habit = makeHabit({}, createdDaysAgo: 0);
+      expect(getStreakStatus(habit), StreakStatus.onTrack);
+    });
+
+    test('作成日が昨日・未完了 → onTrack（まだ1日目で連続ミスなし）', () {
+      final habit = makeHabit({}, createdDaysAgo: 1);
+      expect(getStreakStatus(habit), StreakStatus.onTrack);
+    });
   });
 }
